@@ -1,0 +1,1 @@
+python -c "from database import SessionLocal; from models import User; from auth import hash_password; db = SessionLocal(); admin = User(username='admin', email='admin@hemut.com', password_hash=hash_password('admin123'), is_admin=True); db.add(admin); db.commit(); print('Admin created: admin / admin123')"

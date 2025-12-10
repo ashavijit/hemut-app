@@ -1,0 +1,23 @@
+{
+  "version": "2.0",
+  "generated": "2025-12-10T10:08:49.8847665+05:30",
+  "metadata": {
+    "fluxfile_path": "FluxFile",
+    "hostname": "Avijit",
+    "user": "aviji",
+    "python_version": "3.12.7",
+    "os": "windows",
+    "arch": "amd64"
+  },
+  "fluxfile_hash": "b9b68b51ff6a97a670995057feeeb20ca65863bb1238546d44736f0a6ffad9d2",
+  "tasks": {
+    "build": {
+      "config_hash": "ca6135294f7bb347b1428c8508d813864d7faace17df241fe8050a67decf1136",
+      "command_hash": "723c5e86c09ab8df6085a314ada140b63ee755ab2f4f4dcf7aee48f23654eac5",
+      "inputs": {},
+      "outputs": {},
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "last_updated": "2025-12-10T10:08:49.8847665+05:30"
+    }
+  }
+}
