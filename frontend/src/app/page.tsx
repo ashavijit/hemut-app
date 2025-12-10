@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
-import { Search, Loader2 } from "lucide-react"
+import { Search, Loader2, MessageCircleQuestion, AlertTriangle, Clock, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Question } from "@/lib/types"
@@ -17,14 +17,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 const ITEMS_PER_PAGE = 20
 
-const QuestionList = ({ 
-  data, 
-  emptyMessage, 
-  onUpdate 
-}: { 
-  data: Question[], 
-  emptyMessage: string, 
-  onUpdate: (q: Question) => void 
+const QuestionList = ({
+  data,
+  emptyMessage,
+  emptyIcon: EmptyIcon,
+  onUpdate
+}: {
+  data: Question[],
+  emptyMessage: string,
+  emptyIcon?: React.ElementType,
+  onUpdate: (q: Question) => void
 }) => {
   const [displayLimit, setDisplayLimit] = useState(ITEMS_PER_PAGE)
   const observerTarget = useRef<HTMLDivElement>(null)
@@ -53,9 +55,14 @@ const QuestionList = ({
   const visibleData = useMemo(() => data.slice(0, displayLimit), [data, displayLimit])
 
   if (data.length === 0) {
+    const Icon = EmptyIcon || MessageCircleQuestion
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-lg border-muted">
-        <p className="text-muted-foreground">{emptyMessage}</p>
+      <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-xl border-muted bg-muted/20">
+        <div className="p-4 rounded-full bg-muted mb-4">
+          <Icon className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <p className="text-muted-foreground font-medium">{emptyMessage}</p>
+        <p className="text-sm text-muted-foreground/70 mt-1">Questions will appear here</p>
       </div>
     )
   }
@@ -65,13 +72,13 @@ const QuestionList = ({
       {visibleData.map((q) => (
         <QuestionCard key={q.id} question={q} onUpdate={onUpdate} />
       ))}
-      
+
       {displayLimit < data.length && (
         <div ref={observerTarget} className="flex justify-center py-4">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       )}
-      
+
       {displayLimit >= data.length && data.length > ITEMS_PER_PAGE && (
         <p className="text-center text-xs text-muted-foreground py-4">
           No more questions to load
@@ -107,7 +114,7 @@ export default function Home() {
   const handleWSMessage = useCallback((msg: { type: string; data: Record<string, unknown> }) => {
     if (msg.type === "new_question") {
       const newQ = msg.data as unknown as Question
-      
+
       setQuestions((prev) => {
         if (prev.some(q => q.id === newQ.id)) return prev
         return [newQ, ...prev]
@@ -137,7 +144,7 @@ export default function Home() {
   }
 
   const filteredGroups = useMemo(() => {
-    const searchFiltered = questions.filter(q => 
+    const searchFiltered = questions.filter(q =>
       q.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.author_name?.toLowerCase().includes(searchQuery.toLowerCase())
     )
@@ -159,23 +166,30 @@ export default function Home() {
   return (
     <div className="container max-w-4xl py-8 mx-auto space-y-8">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Q&A Dashboard</h1>
-          <p className="text-muted-foreground">Manage and respond to audience questions in real-time.</p>
+        <div className="text-center sm:text-left">
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            Q&A Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Manage and respond to audience questions in real-time
+          </p>
         </div>
-        
+
         <QuestionForm onSubmit={handleNewQuestion} />
       </div>
 
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search questions..."
-            className="pl-8"
+            className="pl-10 bg-muted/50 border-muted focus:bg-background transition-colors"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {questions.length} total questions
         </div>
       </div>
 
@@ -198,34 +212,34 @@ export default function Home() {
 
           <div className="mt-4 min-h-[500px]">
             <TabsContent value="all" forceMount={activeTab === 'all' ? true : undefined} hidden={activeTab !== 'all'}>
-              <QuestionList 
-                data={filteredGroups.all} 
+              <QuestionList
+                data={filteredGroups.all}
                 emptyMessage={searchQuery ? "No matching questions found." : "No questions yet."}
-                onUpdate={handleUpdate} 
+                onUpdate={handleUpdate}
               />
             </TabsContent>
-            
+
             <TabsContent value="escalated" forceMount={activeTab === 'escalated' ? true : undefined} hidden={activeTab !== 'escalated'}>
-              <QuestionList 
-                data={filteredGroups.escalated} 
+              <QuestionList
+                data={filteredGroups.escalated}
                 emptyMessage="No escalated questions."
-                onUpdate={handleUpdate} 
+                onUpdate={handleUpdate}
               />
             </TabsContent>
-            
+
             <TabsContent value="pending" forceMount={activeTab === 'pending' ? true : undefined} hidden={activeTab !== 'pending'}>
-              <QuestionList 
-                data={filteredGroups.pending} 
+              <QuestionList
+                data={filteredGroups.pending}
                 emptyMessage="No pending questions."
-                onUpdate={handleUpdate} 
+                onUpdate={handleUpdate}
               />
             </TabsContent>
-            
+
             <TabsContent value="answered" forceMount={activeTab === 'answered' ? true : undefined} hidden={activeTab !== 'answered'}>
-              <QuestionList 
-                data={filteredGroups.answered} 
+              <QuestionList
+                data={filteredGroups.answered}
                 emptyMessage="No answered questions yet."
-                onUpdate={handleUpdate} 
+                onUpdate={handleUpdate}
               />
             </TabsContent>
           </div>
